@@ -22,9 +22,9 @@ export async function POST(req) {
       status: 200,
     });
   } catch (err) {
-    console.error(err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-    });
+    return new Response(
+      JSON.stringify({ error: err.message }),
+      { status: 500 }
+    );
   }
 }

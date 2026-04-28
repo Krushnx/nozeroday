@@ -6,7 +6,7 @@ self.addEventListener("push", function (event) {
   } catch {
     data = {
       title: "Notification",
-      body: event.data?.text() || "New update",
+      body: event.data?.text() || "Update",
     };
   }
 

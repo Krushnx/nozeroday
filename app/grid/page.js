@@ -57,44 +57,50 @@ export default function GridPage() {
   }, []);
 
   // 🔔 Subscribe (FIXED)
-  async function subscribeUser() {
-    try {
-      // ✅ Check support
-      if (!("serviceWorker" in navigator)) {
-        alert("Service Worker not supported on this browser");
-        return;
-      }
-
-      // ✅ Ask permission FIRST
-      const permission = await Notification.requestPermission();
-
-      if (permission !== "granted") {
-        alert("Notification permission denied");
-        return;
-      }
-
-      const reg = await navigator.serviceWorker.ready;
-
-      // ✅ Check existing subscription
-      let subscription = await reg.pushManager.getSubscription();
-
-      if (!subscription) {
-        subscription = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(
-            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-          ),
-        });
-      }
-
-      console.log("🔥 SUBSCRIPTION:", JSON.stringify(subscription));
-      alert("Notifications enabled!");
-
-    } catch (err) {
-      console.error("❌ ERROR:", err);
-      alert(err.message || "Subscription failed");
+async function subscribeUser() {
+  try {
+    if (!("serviceWorker" in navigator)) {
+      alert("Service Worker not supported");
+      return;
     }
+
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      alert("Permission denied");
+      return;
+    }
+
+    const reg = await navigator.serviceWorker.ready;
+
+    let subscription = await reg.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        ),
+      });
+    }
+
+    // 🔥 SAVE TO BACKEND
+    await fetch("/api/save-subscription", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ subscription }),
+    });
+
+    console.log("🔥 SUB:", subscription);
+    alert("Notifications enabled!");
+
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
   }
+}
 
   // 🔔 Test notification
   async function sendTestNotification() {
